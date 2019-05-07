@@ -103,15 +103,67 @@ title('Fourier Transform')
 [x, fs] = audioread('spring_HiFi.wav');
 x_sound = audioplayer (x,fs);
 %play(x_sound);
+%Calculate wc
+fm=44100;
+fc=3000;
+wc=2*pi*(fc/fm);
+%Define h(n)
+n=-30:30;
+h1=(wc/pi)*sinc(wc*n/pi);
 
+figure;
+plot(h1);
+xlabel('Discrete time(n)')
+ylabel('Magnitude')
+title('H(n)')
+%Frequency spectrum
+spec=fft(x);
+spec=spec(1:end/2);
+freq=linspace(0,fs/2,length(spec));
+magnitud=abs(spec);
+t=0:1/fs:(length(x)-1)/fs;
+figure;
+plot(freq,magnitud);
+xlabel('Hertz')
+ylabel('Magnitude')
+title('Frequency spectrum')
+
+%Filter audio
+conv = h1.* x;
+spec_conv=fft(conv);
+freq_conv=linspace(0,fs/2,length(spec_conv));
+magnitud_conv=abs(spec_conv);
+t=0:1/fs:(length(x)-1)/fs;
+figure;
+plot(freq_conv,magnitud_conv);
+xlabel('Hertz')
+ylabel('Magnitude')
+title('Frequency spectrum')
+
+%High pass filter
+[x, fs] = audioread('spring_HiFi.wav');
+x_sound = audioplayer (x,fs);
 %Calculate wc
 fs=44100;
 fc=3000;
 wc=2*pi*(fc/fs);
 %Define h(n)
 n=-30:30;
-h1=(wc/pi)*sinc(wc*n/pi);
-%FIR 
-F=[0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0];
-a=1;
-y=filter(b,a,x);
+h1=-(wc/pi)*sinc(wc*n/pi);
+figure;
+plot(n,h1);
+xlabel('Discrete time(n)');
+ylabel('Magnitude');
+title('High Pass Filter');
+%Window
+M=16;
+wvtool(hann(M))
+h2=h1*wvtool;
+figure;
+plot(n,h2);
+title('Filter windowed');
+%Apply filter
+tot=h2.*x;
+figure;
+plot(tot);
+title('Filtered audio');
